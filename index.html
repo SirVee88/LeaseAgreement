@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+  
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SirVee RentCalc</title>
+
+
+  <style>
+    h2 {
+        font-size: 35px;
+        text-align: left;
+        color: purple;
+        padding-left: 50px;
+        padding-bottom: 45px;
+    }
+    body {
+        font-size: 16px; /* Adjust the base font size */
+        padding-left: 40px;
+    }
+    .labelHeader {
+        padding-left: 15px; /* Example padding value, adjust as needed */
+    }
+
+      
+    .table-container {
+        width: 100%; /* Ensure the container allows resizing */
+    }    
+    table {
+        collapse: collapse;
+        padding: 5px;
+        border: 2px solid purple;
+        border-radius: 10px;
+        table-layout: fixed; /* Optional: Ensures table respects width */
+    }
+    th {
+        padding: 10px;
+        text-align: left;
+        font-size: 1.2em; /* Increase table font size */
+    }
+    td {
+        padding: 10px;
+        vertical-align: middle;
+    }
+
+
+      
+    
+    input[type="text"], input[type="number"] 
+    {
+        border-radius: 15px;  
+        font-size: 18px; /* Increase month, week, year NUMBER font size */
+        text-align: right;
+        padding: 14px;
+        width: 160px;
+    }
+    
+    .editable {
+        background-color: yellow;
+    }
+
+  </style>
+
+</head>
+
+
+
+  
+<body>
+
+<h2>Sir Vee Rent Calculator</h2>
+
+    <label for="howOftenRentPaid" class="labelHeader" style="font-size: 25px;" > 
+        Choose how often rentStarting is collected: </label>
+    <br><br>
+
+<form id="howOftenRentPaid" style="font-size: 20px;" onchange="updateEditableColumn()">
+    
+  <table>
+    <tr>            
+      <th>Week</th>
+      <td>
+        <input type="text" id="week" 
+            onfocus="clearAllInputs()" oninput="updateValues('week')" onblur="addCommasToELEMENT(this)">
+      </td>
+      <td>
+        <input type="radio" name="options" value="weekly"
+            onclick="clearAllInputs(); 
+            document.getElementById('howLongFrequency').textContent = 'weeks';
+            document.getElementById('howOftenEscalateFrequency').textContent = 'weeks';">
+        Pay every week
+      </td>
+    </tr>
+
+    <tr>
+      <th>Month</th>
+      <td>
+        <input type="text" id="month" 
+            onfocus="clearAllInputs()" oninput="updateValues('month')" onblur="addCommasToELEMENT(this)">
+      </td>
+      <td>
+        <input type="radio" name="options" value="monthly"
+            onclick="clearAllInputs(); 
+            document.getElementById('howLongFrequency').textContent = 'months';
+            document.getElementById('howOftenEscalateFrequency').textContent = 'months';">
+        Monthly collection
+      </td>
+    </tr>
+
+    <tr>
+      <th>Year</th>
+      <td>
+        <input type="text" id="year" 
+            onfocus="clearAllInputs()" oninput="updateValues('year')" onblur="addCommasToELEMENT(this)">
+      </td>
+      <td>
+        <input type="radio" name="options" value="yearly"
+            onclick="clearAllInputs(); 
+            document.getElementById('howLongFrequency').textContent = 'years';
+            document.getElementById('howOftenEscalateFrequency').textContent = 'years';">
+        Annual payment
+      </td>
+    </tr>
+  </table>
+</form>
+
+
+    <!-- *********************************************************** --> 
+    <!-- This is where Sir Vee's calculator begins collecting data   --> 
+    <!-- *********************************************************** --> 
+    
+<br><br><br>  
+
+
+<label for="rentStarting" class="labelHeader" style="font-size: 25px;">
+    Rent amount:</label>
+<input type="text" id="rentStarting" tabindex="0" style="font-size: 25px; width: 250px; text-align: right;" readonly>
+
+<br><br>
+<label for="dateStarting" class="labelHeader" style="font-size: 25px;">
+    Date lease begins:</label>
+<input type="date" id="dateStarting" tabindex="1" style="font-size: 25px; width: 250px; text-align: right;">
+
+<br><br>
+<label for="howLong" class="labelHeader" style="font-size: 25px;">
+    The lease will last for:</label>
+<input type="number" id="howLong" tabindex="2" style="font-size: 25px; width: 100px; text-align: right;">
+    <label id="howLongFrequency" style="font-size: 25px;">
+        months
+    </label>
+<br><br>
+<label for="howOftenEscalate" class="labelHeader" 
+    style="font-size: 25px;">
+    This will escalate every:</label>
+<input type="number" id="howOftenEscalate" tabindex="3" 
+    style="font-size: 25px; width: 100px; text-align: right;">
+    <label id="howOftenEscalateFrequency" 
+        style="font-size: 25px;">
+        months
+    </label>
+<br><br>
+<label for="escalationPercentage" class="labelHeader" 
+    style="font-size: 25px;">
+    Escalation (in %):</label>
+<input type="number" id="escalationPercentage" tabindex="0" 
+    style="font-size: 25px; width: 250px; text-align: right;">
+<br><br>
+    
+<br><br>
+<button id="buttonMakeTableLease"
+    onclick="showLeaseCashFlow()"
+    style="width: 530px; height: 150px; padding: 10px; font-size: 22px; text-align: center;">
+    Make a f***ing table <br> that shows me the lease
+</button>
+
+    <!-- PLEASE make sure you create an empty <div> here for the future TABLE --> 
+ <br><br>
+
+    <div id="cashFlowTable"></div>
+
+
+
+    
+<script>
+    
+    function updateEditableColumn() {
+
+        document.getElementById('week').readOnly = true;
+        document.getElementById('month').readOnly = true;
+        document.getElementById('year').readOnly = true;
+
+        document.getElementById('week').style.pointerEvents = 'none';
+        document.getElementById('month').style.pointerEvents = 'none';
+        document.getElementById('year').style.pointerEvents = 'none';
+
+        document.getElementById('week').tabIndex = -1;
+        document.getElementById('month').tabIndex = -1;
+        document.getElementById('year').tabIndex = -1;
+        
+        document.getElementById('week').classList.remove('editable');
+        document.getElementById('month').classList.remove('editable');
+        document.getElementById('year').classList.remove('editable');
+        
+            const gggg = document.getElementById('howOftenRentPaid');
+            const ssss = gggg.querySelector('input[name="options"]:checked');
+        
+            const rentStartingPaid = ssss ? ssss.value : null;
+    
+            if          (rentStartingPaid === 'weekly') {
+                document.getElementById('week').readOnly = false;
+                document.getElementById('week').style.pointerEvents = 'auto';
+                document.getElementById('week').classList.add('editable');
+                
+            } else if   (rentStartingPaid === 'monthly') {
+                document.getElementById('month').readOnly = false;
+                document.getElementById('month').style.pointerEvents = 'auto';
+                document.getElementById('month').classList.add('editable');
+                
+            } else if   (rentStartingPaid === 'yearly') {
+                document.getElementById('year').readOnly = false;
+                document.getElementById('year').style.pointerEvents = 'auto';
+                document.getElementById('year').classList.add('editable');
+            }
+    }
+
+
+
+    
+    function updateValues(source) {
+        const weekInput  = document.getElementById('week');
+        const monthInput = document.getElementById('month');
+        const yearInput  = document.getElementById('year');
+        const rentStartingInput  = document.getElementById('rentStarting');
+
+        let weekValue  = parseFloat(weekInput.value.replace(/,/g, '')) || 0;
+        let monthValue = parseFloat(monthInput.value.replace(/,/g, '')) || 0;
+        let yearValue  = parseFloat(yearInput.value.replace(/,/g, '')) || 0;
+
+        if (source === 'week') {
+            rentStartingInput.value = addCommasToValue(weekValue.toFixed(2));
+            yearValue = weekValue * 52;
+            monthValue = yearValue / 12;
+            yearInput.value = addCommasToValue(yearValue.toFixed(2));
+            monthInput.value = addCommasToValue(monthValue.toFixed(2));
+        } else if (source === 'month') {
+            rentStartingInput.value = addCommasToValue(monthValue.toFixed(2));
+            yearValue = monthValue * 12;
+            weekValue = yearValue / 52;
+            yearInput.value = addCommasToValue(yearValue.toFixed(2));
+            weekInput.value = addCommasToValue(weekValue.toFixed(2));
+        } else if (source === 'year') {
+            rentStartingInput.value = addCommasToValue(yearValue.toFixed(2));
+            monthValue = yearValue / 12;
+            weekValue = yearValue / 52;
+            monthInput.value = addCommasToValue(monthValue.toFixed(2));
+            weekInput.value = addCommasToValue(weekValue.toFixed(2));
+        }
+    }
+
+    
+    function addCommasToValue(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+
+    
+    function addCommasToELEMENT(element) {
+        var num = element.value.replace(/,/g, '');  // Remove existing commas
+            num = parseFloat(num).toFixed(2);       // Convert to number and format to 2 decimal places
+        if (num && !isNaN(num)) {
+            element.value = num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+    }
+    
+    function clearAllInputs() {
+        // The three rentStarting inputs
+        document.getElementById('week').value = '';
+        document.getElementById('month').value = '';
+        document.getElementById('year').value = '';
+        // The single RENT value storage
+        document.getElementById('rentStarting').value = '';
+    }
+    
+    // When HTML loads, initialize the editable column based on default selection
+    updateEditableColumn();
+</script>
+
+
+<script src="script.js"> // ADD this IF you want to point the browser to where is our script.js file!!
+</script>
+
+    
+</body>
+</html>
